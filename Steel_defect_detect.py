@@ -371,16 +371,7 @@ for j, b in tqdm(enumerate(batch_idx)):
         print(type(test_df))
 
 print(type(test_df))
-
-
-# In[ ]:
-
-
 test_df=list(test_df)
-
-
-# In[ ]:
-
 
 test_df = pd.concat(test_df)
 test_df.drop(columns='ImageId', inplace=True)
