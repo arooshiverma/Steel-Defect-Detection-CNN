@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import os
 import json
 
@@ -24,9 +18,7 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 
-# **PREPROCESSING**
-
-# In[ ]:
+# PREPROCESSING
 
 
 traindf=pd.read_csv('train.csv')
@@ -34,29 +26,16 @@ traindf['ImageId'] = traindf['ImageId_ClassId'].apply(lambda x: x.split('_')[0])
 traindf['ClassId'] = traindf['ImageId_ClassId'].apply(lambda x: x.split('_')[1])
 traindf['hasMask'] = ~ traindf['EncodedPixels'].isna()
 traindf.head()
-
-
-# In[ ]:
-
-
 maskcountdf = traindf.groupby('ImageId').agg(np.sum).reset_index()
 maskcountdf.sort_values('hasMask', ascending=False, inplace=True)
 print(maskcountdf.shape)
 maskcountdf.head()
-
-
-# In[ ]:
-
-
 sub_df = pd.read_csv('sample_submission.csv')
 sub_df['ImageId'] = sub_df['ImageId_ClassId'].apply(lambda x: x.split('_')[0])
 test_imgs = pd.DataFrame(sub_df['ImageId'].unique(), columns=['ImageId'])
 
 
-# **UTILITY**
-
-# In[ ]:
-
+# UTILITY
 
 def mask2rle(img):
     '''
@@ -86,9 +65,6 @@ def rle2mask(mask_rle, shape=(256,1600)):
     return img.reshape(shape).T
 
 
-# In[ ]:
-
-
 def build_masks(rles, input_shape):
     depth = len(rles)
     height, width = input_shape
@@ -109,9 +85,6 @@ def build_rles(masks):
     return rles
 
 
-# In[ ]:
-
-
 def dice_coef(y_true, y_pred, smooth=1):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
@@ -129,9 +102,7 @@ def dice_loss(y_true, y_pred):
 def bce_dice_loss(y_true, y_pred):
     return binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
 
-
-# In[ ]:
-
+#Sample visualiztion
 
 #/kaggle/input/severstal-steel-defect-detection/train_images/910540b7d.jpg
 sample_filename = '910540b7d.jpg'
@@ -148,10 +119,6 @@ axs[0].axis('off')
 for i in range(4):
     axs[i+1].imshow(sample_masks[:, :, i])
     axs[i+1].axis('off')
-
-
-# In[ ]:
-
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
@@ -246,10 +213,6 @@ class DataGenerator(keras.utils.Sequence):
 
         return img
 
-
-# In[ ]:
-
-
 BATCH_SIZE = 16
 
 train_idx, val_idx = train_test_split(
@@ -273,7 +236,6 @@ val_generator = DataGenerator(
 )
 
 
-# In[ ]:
 
 
 def build_model(input_shape):
@@ -334,16 +296,8 @@ def build_model(input_shape):
     
     return model
 
-
-# In[ ]:
-
-
 model = build_model((256, 1600, 1))
 model.summary()
-
-
-# In[ ]:
-
 
 checkpoint = ModelCheckpoint(
     'model.h5', 
@@ -375,9 +329,6 @@ history_df[['loss', 'val_loss']].plot()
 history_df[['dice_coef', 'val_dice_coef']].plot()
 
 
-# In[ ]:
-
-
 model.load_weights('model.h5')
 test_df = []
 
@@ -405,11 +356,6 @@ for i in range(0, test_imgs.shape[0], 500):
     )
     
     
-
-
-# In[ ]:
-
-
 for j, b in tqdm(enumerate(batch_idx)):
         filename = test_imgs['ImageId'].iloc[b]
         image_df = sub_df[sub_df['ImageId'] == filename].copy()
@@ -423,10 +369,6 @@ for j, b in tqdm(enumerate(batch_idx)):
         test_df.append(image_df)
         print(2)
         print(type(test_df))
-
-
-# In[ ]:
-
 
 print(type(test_df))
 
